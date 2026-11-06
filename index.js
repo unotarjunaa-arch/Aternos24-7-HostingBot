@@ -370,6 +370,28 @@ function createBot() {
       checkTimeoutInterval: 600000
     });
 
+    // Minecraft 26.3 compatibility fix
+const originalWrite = bot._client.write.bind(bot._client);
+
+bot._client.write = (name, packet) => {
+  const result = originalWrite(name, packet);
+
+  if (
+    name === 'position' ||
+    name === 'position_look' ||
+    name === 'look' ||
+    name === 'flying'
+  ) {
+    try {
+      originalWrite('tick_end', {});
+    } catch (err) {
+      // Ignore unsupported packet versions
+    }
+  }
+
+  return result;
+};
+    
     bot.loadPlugin(pathfinder);
 
     clearBotTimeouts();
